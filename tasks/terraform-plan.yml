@@ -1,0 +1,53 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: hashicorp/terraform
+    tag: 0.11.13
+
+inputs:
+  - name: initialized-code
+  - name: state
+    optional: true
+  - name: vars
+    optional: true
+
+outputs:
+  - name: plan
+
+params:
+  WORKING_DIR: .
+  STATE_FILE: terraform.tfstate
+  PLAN_FILE: plan
+  VARS_FILES: ''
+
+run:
+  path: sh
+  args:
+    - -c
+    - |
+      set -euo pipefail
+
+      BASEDIR=$PWD
+
+      # Move to the directory which holds the main code
+      cd initialized-code/$WORKING_DIR
+
+      state_file=''
+      if [[ -f $BASEDIR/state/$STATE_FILE ]]; then
+        state_file="-state=$BASEDIR/state/$STATE_FILE"
+      fi
+
+      var_files=''
+      if [[ -d $BASEDIR/vars ]]; then
+        for var_file in $BASEDIR/vars/$VARS_FILES; do
+          var_files="$var_files -var-file=$var_file"
+        done
+      fi
+
+      terraform plan \
+        -out=$BASEDIR/plan/$PLAN_FILE  \
+        $state_file \
+        $var_files

@@ -1,0 +1,33 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: hashicorp/terraform
+    tag: 0.11.13
+
+inputs:
+  - name: initialized-code
+  - name: plan
+
+outputs:
+  - name: updated-state
+
+params:
+  WORKING_DIR: .
+  PLAN_FILE: plan
+
+run:
+  path: sh
+  args:
+    - -c
+    - |
+      set -euo pipefail
+
+      BASEDIR=$PWD
+
+      # Move to the directory which holds the main code
+      cd initialized-code/$WORKING_DIR
+
+      terraform apply -auto-approve -state-out $BASEDIR/updated-state/terraform.tfstate $BASEDIR/plan/$PLAN_FILE

@@ -1,0 +1,3 @@
+[submodule "vendor/bats-print"]
+	path = vendor/bats-print
+	url = https://github.com/mcarey-solstice/bats-print

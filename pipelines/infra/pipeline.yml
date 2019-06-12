@@ -1,0 +1,53 @@
+---
+resources:
+- name: tasks
+  type: git
+  source:
+    url: ((git_repo.url))
+    branch: ((git_repo.branch))
+    private_key: ((git_repo.private_key))
+    paths:
+      - tasks/
+
+- name: terraform
+  type: git
+  source:
+    url: ((git_repo.url))
+    branch: ((git_repo.branch))
+    private_key: ((git_repo.private_key))
+    paths:
+      - terraform/
+
+- name: terraform-state
+  type: s3
+  source:
+    bucket: ((storage.bucket))
+    regexp: ((identifier))/terraform.tfstate
+    access_key_id: ((storage.access_key_id))
+    secret_access_key: ((storage.secret_access_key))
+
+jobs:
+- name: create-infra
+  serial: true
+  plan:
+    - aggregate:
+      - get: tasks
+      - get: terraform
+        trigger: true
+      - get: terraform-state
+
+    - task: terraform-init
+      file: tasks/tasks/terraform-init.yml
+      input_mapping:
+        code: terraform
+
+    - task: terraform-plan
+      file: tasks/tasks/terraform-plan.yml
+
+    - task: terraform-apply
+      file: tasks/tasks/terraform-apply.yml
+      ensure:
+        put: terraform-state
+        params:
+          file: updated-state/terraform.tfstate
+          predefined_acl: private

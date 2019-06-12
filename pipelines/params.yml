@@ -1,0 +1,12 @@
+---
+identifier: ((deployment_identifier))
+
+git_repo:
+  url: git@github.com:mike-carey/pcf-pipelines.git
+  branch: master
+  private_key: ((git_private_key))
+
+storage:
+  bucket: pcf-deployments
+  access_key_id: ((storage_access_key_id))
+  secret_access_key: ((storage_secret_access_key))
